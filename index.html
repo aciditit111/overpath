@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overpath — delete files with paths longer than 260 characters on Windows</title>
+<meta name="description" content="Windows File Explorer cannot delete, rename or move files whose path exceeds 260 characters. Overpath can. Free to scan, one-time payment to unlock the operations.">
+
+<meta property="og:title" content="Overpath — fix &quot;path too long&quot; on Windows">
+<meta property="og:description" content="Delete, rename and move files File Explorer refuses to touch because their path is over 260 characters.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://aciditit111.github.io/overpath/shots/main-licensed.png">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📁</text></svg>">
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --border: #e3e5e8;
+    --text: #15181c;
+    --muted: #5c6370;
+    --accent: #0f6cbd;
+    --accent-dark: #0b5696;
+    --danger: #c42b1c;
+    --ok: #0f7b0f;
+    --radius: 10px;
+    --maxw: 1080px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a;
+      --surface: #1b1f24;
+      --border: #2c3137;
+      --text: #e8eaed;
+      --muted: #a0a7b4;
+      --accent: #4aa3e8;
+      --accent-dark: #6cb6ee;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 -apple-system, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 16px; }
+  h1 { font-size: clamp(32px, 5vw, 50px); font-weight: 700; }
+  h2 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 650; }
+  h3 { font-size: 19px; font-weight: 650; }
+  p { margin: 0 0 16px; }
+
+  a { color: var(--accent); }
+
+  code, .mono {
+    font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
+    font-size: 0.92em;
+  }
+
+  /* --- hero --- */
+  header { padding: 72px 0 48px; }
+
+  .lede {
+    font-size: clamp(17px, 2vw, 20px);
+    color: var(--muted);
+    max-width: 62ch;
+    margin-bottom: 32px;
+  }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+  .btn {
+    display: inline-block;
+    padding: 13px 26px;
+    border-radius: 7px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: opacity .15s ease;
+  }
+  .btn:hover { opacity: .88; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
+
+  .cta-note { font-size: 14px; color: var(--muted); width: 100%; margin-top: 4px; }
+
+  /* --- the problem --- */
+  .problem {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin: 0 0 40px;
+  }
+  .problem p:last-child { margin-bottom: 0; }
+
+  .quote {
+    border-left: 3px solid var(--accent);
+    padding-left: 16px;
+    margin: 20px 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .quote cite { display: block; font-style: normal; font-size: 14px; margin-top: 8px; }
+
+  /* --- screenshot --- */
+  figure { margin: 0 0 56px; }
+  figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; text-align: center; }
+
+  /* --- sections --- */
+  section { padding: 48px 0; border-top: 1px solid var(--border); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .card h3 { margin-bottom: 8px; }
+  .card p { color: var(--muted); margin-bottom: 0; font-size: 15px; }
+
+  /* --- pricing --- */
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 760px;
+  }
+  .plan {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px;
+    background: var(--surface);
+  }
+  .plan.featured { border-color: var(--accent); border-width: 2px; }
+  .plan .amount { font-size: 38px; font-weight: 700; letter-spacing: -0.03em; }
+  .plan .period { font-size: 15px; color: var(--muted); font-weight: 400; }
+  .plan ul { list-style: none; padding: 0; margin: 18px 0 22px; }
+  .plan li { padding: 6px 0 6px 26px; position: relative; font-size: 15px; }
+  .plan li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--ok);
+    font-weight: 700;
+  }
+  .plan li.no::before { content: "—"; color: var(--muted); }
+
+  /* --- faq --- */
+  details {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--muted); font-weight: 400; }
+  details[open] summary::after { content: "−"; }
+  details p { margin: 14px 0 0; color: var(--muted); }
+  details p:last-child { margin-bottom: 0; }
+
+  /* --- footer --- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 0 60px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  footer a { color: var(--muted); }
+
+  .warn {
+    background: #fff4e5;
+    border: 1px solid #f0d9b5;
+    color: #8a5a00;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14.5px;
+    margin: 24px 0 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .warn { background: #2a2113; border-color: #4a3a1c; color: #e0b572; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Windows won&rsquo;t let you delete that file.<br>Overpath will.</h1>
+
+    <p class="lede">
+      If a file&rsquo;s full path is longer than 260 characters, File Explorer refuses to
+      delete, rename or move it &mdash; and the error it gives you doesn&rsquo;t say why.
+      Overpath works on those files directly, the way Windows itself does internally.
+    </p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#download">Download for Windows</a>
+      <a class="btn btn-secondary" href="#pricing">See pricing</a>
+      <span class="cta-note">Free to scan and diagnose, with no limits. No account, no sign-up.</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <figure>
+    <img src="shots/main-licensed.png"
+         alt="Overpath showing four files and folders with paths of 270 to 299 characters, with Delete, Rename and Move buttons">
+    <figcaption>Overpath listing items File Explorer cannot touch, with the exact length of each path.</figcaption>
+  </figure>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>Why this happens</h2>
+
+    <div class="problem">
+      <p>
+        Windows has an old limit called <code>MAX_PATH</code>: 260 characters. Modern Windows
+        can work past it, and the underlying system calls have supported longer paths for years.
+        File Explorer, however, never opted in.
+      </p>
+
+      <blockquote class="quote">
+        &ldquo;File Explorer and Office desktop apps do not currently opt in to long path support.&rdquo;
+        <cite>&mdash; Microsoft support documentation</cite>
+      </blockquote>
+
+      <p>
+        So even if you enable long paths in the registry, Explorer still refuses. The usual
+        advice online is to install a file archiver and rename the file from inside it, or to
+        shorten every parent folder by hand until the total drops under the limit.
+      </p>
+
+      <p>
+        Overpath skips all of that. It calls the Windows file APIs in their extended form,
+        which has no 260-character limit, and operates on the file directly.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Where long paths come from</h3>
+        <p>
+          Cloud folders that sync a nested structure, <code>node_modules</code> trees,
+          scanned document archives with descriptive folder names, and anything copied
+          from a server share into an already-deep folder.
+        </p>
+      </div>
+      <div class="card">
+        <h3>What you usually see</h3>
+        <p>
+          &ldquo;The file name is too long&rdquo;, &ldquo;The source file name is longer than
+          supported&rdquo;, or a delete that simply does nothing. Sometimes the folder
+          cannot even be opened.
+        </p>
+      </div>
+      <div class="card">
+        <h3>What Overpath does</h3>
+        <p>
+          Scans a folder, lists every item past the limit with its exact path length,
+          and lets you delete, rename or move them. Folders are removed from the inside
+          out, so nothing is left stuck.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How it works</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>1. Point it at a folder</h3>
+        <p>Pick any folder or drive. You can lower the length threshold if you want to see items that are merely close to the limit.</p>
+      </div>
+      <div class="card">
+        <h3>2. Scan</h3>
+        <p>The scan runs in the background and can be stopped at any time. Folders it cannot read, usually for permission reasons, are listed separately rather than silently skipped.</p>
+      </div>
+      <div class="card">
+        <h3>3. Act on what you found</h3>
+        <p>Tick the items and delete, rename or move them. Every result is shown per row, with the actual reason when something fails.</p>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>One thing to know before deleting:</strong> items are removed permanently, not sent
+      to the Recycle Bin. The Recycle Bin hits the same 260-character limit that caused the
+      problem in the first place, so it cannot accept these files. Overpath asks for confirmation
+      and tells you this before anything is deleted.
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <h2>Pricing</h2>
+    <p class="lede">Scanning is free forever. Pay once if you need to act on what you find.</p>
+
+    <div class="price-grid">
+      <div class="plan">
+        <h3>Free</h3>
+        <div class="amount">$0</div>
+        <ul>
+          <li>Unlimited scanning</li>
+          <li>Exact path length for every item</li>
+          <li>Report of unreadable folders</li>
+          <li class="no">Delete, rename, move</li>
+        </ul>
+        <a class="btn btn-secondary" href="#download">Download</a>
+      </div>
+
+      <div class="plan featured">
+        <h3>Full version</h3>
+        <div class="amount">$9 <span class="period">once</span></div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Delete files and whole folders</li>
+          <li>Rename and move</li>
+          <li>Works offline, forever</li>
+          <li>No subscription, no account</li>
+        </ul>
+        <a class="btn btn-primary" href="#download">Get a licence key</a>
+      </div>
+    </div>
+
+    <p style="margin-top:24px;color:var(--muted);font-size:15px;max-width:62ch">
+      The licence is verified on your own machine by a cryptographic signature.
+      Overpath never contacts a server, so it keeps working if your internet
+      drops, and there is nothing about you for us to collect.
+    </p>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2>Download</h2>
+    <p class="lede">Windows 10 and 11, 64-bit. Around 150 KB. No installer required.</p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/aciditit111/overpath/releases/latest">Download latest release</a>
+      <span class="cta-note">
+        The first run may show a &ldquo;Windows protected your PC&rdquo; notice because the app is new
+        and has no download history yet. Choose <em>More info</em> &rarr; <em>Run anyway</em>.
+        See the FAQ below for why this happens.
+      </span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Questions</h2>
+
+    <details>
+      <summary>Why does Windows warn me when I run it?</summary>
+      <p>
+        Windows SmartScreen warns about any program it has not seen downloaded many times before.
+        The warning is about reputation, not about anything found in the file. It fades as more
+        people download the same build.
+      </p>
+      <p>
+        A code signing certificate would reduce the warning, but certificate authorities do not
+        currently issue them to individual developers in every country. Rather than hide that,
+        it is stated here plainly.
+      </p>
+    </details>
+
+    <details>
+      <summary>Does it send anything anywhere?</summary>
+      <p>
+        No. Overpath makes no network connections at all &mdash; not for licensing, not for
+        updates, not for analytics. The licence key is checked locally against a signature.
+        You can confirm this with any firewall or network monitor.
+      </p>
+    </details>
+
+    <details>
+      <summary>Can it recover a file I already deleted?</summary>
+      <p>
+        No. Overpath is not an undelete tool. It operates on files that still exist but cannot
+        be reached by File Explorer.
+      </p>
+    </details>
+
+    <details>
+      <summary>What if a file is in use by another program?</summary>
+      <p>
+        The operation will fail and the row will say the file is open elsewhere. Close the
+        program holding it and run the operation again. Overpath will not force-close other
+        applications or unload their file handles.
+      </p>
+    </details>
+
+    <details>
+      <summary>Why not just enable long paths in the registry?</summary>
+      <p>
+        You can, and it helps some applications. It does not help File Explorer, which has not
+        opted in to long path support. Enabling it also does nothing for files that are already
+        stuck.
+      </p>
+    </details>
+
+    <details>
+      <summary>Does the licence expire or need renewing?</summary>
+      <p>
+        No. It is a one-time payment for the current major version, the key works offline, and
+        there is no subscription.
+      </p>
+    </details>
+
+    <details>
+      <summary>Can I use it at work?</summary>
+      <p>
+        Yes. One licence covers one person on the machines they personally use. For deploying
+        across a team, get in touch.
+      </p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Overpath &mdash; a small Windows utility for files Explorer cannot reach.
+    </p>
+    <p>
+      <a href="https://github.com/aciditit111/overpath">Source and releases on GitHub</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

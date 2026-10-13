@@ -113,12 +113,14 @@
 
   /* --- screenshot --- */
   figure { margin: 0 0 56px; }
-  figure img {
+  figure img,
+  figure video {
     width: 100%;
     height: auto;
     display: block;
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    background: #000;
   }
   figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; text-align: center; }
 
@@ -231,9 +233,19 @@
 
 <div class="wrap">
   <figure>
-    <img src="shots/main-licensed.png"
-         alt="Overpath showing four files and folders with paths of 270 to 299 characters, with Delete, Rename and Move buttons">
-    <figcaption>Overpath listing items File Explorer cannot touch, with the exact length of each path.</figcaption>
+    <!--
+      Ролик с заставкой, без автовоспроизведения: 6 МБ, которые
+      начинают качаться сами, на мобильном интернете читаются
+      как неуважение. preload="none" — браузер не трогает файл,
+      пока человек не нажал.
+    -->
+    <video controls preload="none" poster="poster.jpg"
+           aria-label="Overpath finding and deleting a file with a 294-character path">
+      <source src="overpath-demo.mp4" type="video/mp4">
+      Your browser cannot play this video.
+      <a href="overpath-demo.mp4">Download it instead</a>.
+    </video>
+    <figcaption>34 seconds: finding files past the limit, and deleting one Explorer refuses to touch.</figcaption>
   </figure>
 </div>
 
